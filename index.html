@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<link>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calc</title>
+<link rel="stylesheet" href="./css/element-plus-@2.9.1-index.css"></link>
+<script src="./js/vue.global@3.5.13.js"></script>
+<script src="./js/element-plus@2.9.1-index.full.js"></script>
+<style>
+  * {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  #app {
+    display: flex;
+    gap: 20px;
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+  }
+
+  .wrap {
+    border: 1px solid #dcdfe6;
+    border-radius: 12px;
+    padding: 20px 20px 0;
+  }
+</style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="wrap">
+      <el-form :model="form1" label-width="auto" label-position="left" style="max-width: 226px">
+        <el-form-item label="costPrice">
+          <el-input v-model="form1.costPrice" @input="value => {
+              form1.costPrice = (value.match(/^\d*(\.\d{0,3})?/) || [''])[0]
+              calcChange()
+            }" />
+        </el-form-item>
+        <el-form-item label="currentPrice">
+          <el-input v-model="form1.currentPrice" @input="value => {
+              form1.currentPrice = (value.match(/^\d*(\.\d{0,3})?/) || [''])[0]
+              calcChange()
+            }" />
+        </el-form-item>
+        <el-form-item label="change">
+          <el-input readonly v-model="form1.change">
+            <template #append>%</template>
+          </el-input>
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <div class="wrap">
+      <el-form :model="form2" label-width="auto" label-position="left" style="max-width: 226px">
+        <el-form-item label="currentPrice">
+          <el-input v-model="form2.currentPrice" @input="value => {
+              form2.currentPrice = (value.match(/^\d*(\.\d{0,3})?/) || [''])[0]
+              calcTargetPrice()
+            }" />
+        </el-form-item>
+        <el-form-item label="change">
+          <el-input v-model="form2.change" @input="(value) => {
+              const match = value.match(/^-?\d*(\.\d{0,2})?/)
+              form2.change = match ? match[0] : ''
+              calcTargetPrice()
+            }">
+            <template #append>%</template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="targetPrice">
+          <el-input readonly v-model="form2.targetPrice" />
+        </el-form-item>
+      </el-form>
+    </div>
+
+    <div class="wrap">
+      <el-form :model="form3" label-width="auto" label-position="left" style="max-width: 226px">
+        <el-form-item label="totalCost">
+          <el-input v-model="form3.totalCost" @input="value => {
+              form3.totalCost = (value.match(/^\d*(\.\d{0,2})?/) || [''])[0]
+              calcProfit()
+            }" />
+        </el-form-item>
+        <el-form-item label="change">
+          <el-input v-model="form3.change" @input="(value) => {
+              const match = value.match(/^-?\d*(\.\d{0,2})?/)
+              form3.change = match ? match[0] : ''
+              calcProfit()
+            }">
+            <template #append>%</template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="profit">
+          <el-input readonly v-model="form3.profit" />
+        </el-form-item>
+      </el-form>
+    </div>
+
+  </div>
+  <script>
+    const { createApp, ref, reactive } = Vue
+
+    const app = createApp({
+      setup() {
+        const form1 = reactive({
+          costPrice: '',
+          currentPrice: '',
+          change: ''
+        })
+
+        const form2 = reactive({
+          currentPrice: '',
+          change: '',
+          targetPrice: ''
+        })
+
+        const form3 = reactive({
+          totalCost: '',
+          change: '',
+          profit: ''
+        })
+
+        const calcChange = () => {
+          const { currentPrice, costPrice } = form1
+          if (currentPrice === '' || costPrice === '') {
+            form1.change = ''
+            return
+          }
+          const res = ((Number(currentPrice) / Number(costPrice)) - 1) * 100
+          form1.change = Math.floor(res * 100) / 100
+        }
+
+        const calcTargetPrice = () => {
+          const { currentPrice, change } = form2
+          if (currentPrice === '' || change === '' || change === '-') {
+            form2.targetPrice = ''
+            return
+          }
+          const res = Number(currentPrice) * (1 + Number(change) / 100)
+          form2.targetPrice = Math.floor(res * 100) / 100
+        }
+
+        const calcProfit = () => {
+          const { totalCost, change } = form3
+          if (totalCost === '' || change === '') {
+            form3.profit = ''
+            return
+          }
+          const res = totalCost * (change / 100)
+          form3.profit = Math.floor(res * 100) / 100
+        }
+
+        return {
+          form1,
+          form2,
+          form3,
+          calcChange,
+          calcTargetPrice,
+          calcProfit
+        }
+      }
+    })
+
+    app.use(ElementPlus)
+    app.mount("#app")
+  </script>
+</body>
+
+</html>
